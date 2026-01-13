@@ -17,3 +17,4 @@ define( 'RT_EMP_PATH', plugin_dir_path( __FILE__ ) );
 
 // We will include our main class
 // require_once RT_EMP_PATH . 'includes/class-rt-employee-loader.php';
+require_once RT_EMP_PATH . 'includes/class-rt-employee.php';
