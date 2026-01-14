@@ -5,6 +5,8 @@ class Rt_Employee_Directory {
     public function __construct() {
         // Hook into WordPress init action
         add_action( 'init', array( $this, 'register_employee_cpt' ) );
+        // New hook for Meta Boxes
+        add_action( 'add_meta_boxes', array( $this, 'add_meta_boxes' ) );
     }
 
     /**
@@ -32,6 +34,7 @@ class Rt_Employee_Directory {
 
         register_post_type( 'rt_employee', $args );
     }
+    
 }
 
 // Initialize the class
