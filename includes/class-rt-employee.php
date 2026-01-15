@@ -7,6 +7,8 @@ class Rt_Employee_Directory {
         add_action( 'init', array( $this, 'register_employee_cpt' ) );
         // New hook for Meta Boxes
         add_action( 'add_meta_boxes', array( $this, 'add_meta_boxes' ) );
+        // New hook to save data
+        add_action( 'save_post', array( $this, 'save_employee_data' ) );
     }
 
     /**
@@ -71,6 +73,42 @@ class Rt_Employee_Directory {
             <input type="email" id="rt_email" name="rt_email" value="<?php echo esc_attr( $email ); ?>" class="widefat">
         </p>
         <?php
+    }
+    /**
+     * Save Meta Box Data securely
+     */
+    public function save_employee_data( $post_id ) {
+        // 1. Check if nonce is set
+        if ( ! isset( $_POST['rt_employee_nonce'] ) ) {
+            return;
+        }
+
+        // 2. Verify Nonce (Security Check against CSRF)
+        if ( ! wp_verify_nonce( $_POST['rt_employee_nonce'], 'rt_save_employee_data' ) ) {
+            return;
+        }
+
+        // 3. Check for Autosave
+        if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
+            return;
+        }
+
+        // 4. Check User Permissions
+        if ( ! current_user_can( 'edit_post', $post_id ) ) {
+            return;
+        }
+
+        // 5. Sanitize and Save 'Designation'
+        if ( isset( $_POST['rt_designation'] ) ) {
+            $designation = sanitize_text_field( $_POST['rt_designation'] );
+            update_post_meta( $post_id, '_rt_designation', $designation );
+        }
+
+        // 6. Sanitize and Save 'Email'
+        if ( isset( $_POST['rt_email'] ) ) {
+            $email = sanitize_email( $_POST['rt_email'] );
+            update_post_meta( $post_id, '_rt_email', $email );
+        }
     }
     
 }
