@@ -9,6 +9,7 @@ class Rt_Employee_Directory {
         add_action( 'add_meta_boxes', array( $this, 'add_meta_boxes' ) );
         // New hook to save data
         add_action( 'save_post', array( $this, 'save_employee_data' ) );
+        add_shortcode( 'rt_employee_list', array( $this, 'render_frontend_shortcode' ) );
     }
 
     /**
@@ -109,6 +110,46 @@ class Rt_Employee_Directory {
             $email = sanitize_email( $_POST['rt_email'] );
             update_post_meta( $post_id, '_rt_email', $email );
         }
+    }
+    /**
+     * Shortcode to display employees: [rt_employee_list]
+     */
+    public function render_frontend_shortcode() {
+        $args = array(
+            'post_type'      => 'rt_employee',
+            'posts_per_page' => 10,
+            'post_status'    => 'publish',
+        );
+
+        $query = new WP_Query( $args );
+        $output = '<div class="rt-employee-grid">';
+
+        if ( $query->have_posts() ) {
+            while ( $query->have_posts() ) {
+                $query->the_post();
+                
+                // Retrieve Metadata
+                $designation = get_post_meta( get_the_ID(), '_rt_designation', true );
+                $email = get_post_meta( get_the_ID(), '_rt_email', true );
+                $photo = get_the_post_thumbnail_url( get_the_ID(), 'medium' );
+
+                // Output HTML (Escaped for Security)
+                $output .= '<div class="rt-employee-card" style="border:1px solid #ddd; padding:10px; margin:10px;">';
+                if ( $photo ) {
+                    $output .= '<img src="' . esc_url( $photo ) . '" style="max-width:100px; border-radius:50%;">';
+                }
+                $output .= '<h3>' . esc_html( get_the_title() ) . '</h3>';
+                $output .= '<p><strong>' . esc_html( $designation ) . '</strong></p>';
+                $output .= '<a href="mailto:' . esc_attr( $email ) . '">' . esc_html( $email ) . '</a>';
+                $output .= '</div>';
+            }
+            wp_reset_postdata();
+        } else {
+            $output .= '<p>No employees found.</p>';
+        }
+
+        $output .= '</div>';
+        return $output;
     }
     
 }
